@@ -19,7 +19,7 @@ fn main() -> io::Result<()> {
     let stdin = io::stdin();
 
     for item in stdin.lock().lines() {
-        let host = format!("{}", item.unwrap());
+        let host = item.unwrap().to_string();
 
         if check_port(&host, new_port) {
             println!(
@@ -55,10 +55,7 @@ fn check_port(host: &str, port: &str) -> bool {
     let (sender, receiver) = mpsc::channel();
 
     let t = thread::spawn(move || {
-        match sender.send(TcpStream::connect(host_port)) {
-            Ok(()) => {} // everything good
-            Err(_) => {} // we have been released, don't panic
-        }
+        if let Ok(()) = sender.send(TcpStream::connect(host_port)) {}
     });
 
     // set time thread
@@ -77,12 +74,8 @@ fn check_port(host: &str, port: &str) -> bool {
     }
 }
 
-fn _check_port_test(host: &String, port: &String) -> bool {
+fn _check_port_test(host: &str, port: &str) -> bool {
     let host_port = format!("{}:{}", host, port);
 
-    if let Ok(_stream) = TcpStream::connect(host_port) {
-        return true;
-    } else {
-        return false;
-    }
+    matches!(TcpStream::connect(host_port), Ok(_stream))
 }
